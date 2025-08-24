@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Sílabas</title>
+    <!-- Google Fonts for "Luckiest Guy" and "Inter" -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos generales y del body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce4ec; /* Rosa claro para un ambiente amigable */
+            color: #4a148c; /* Púrpura oscuro para el texto */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            margin-bottom: 20px;
+            color: #e91e63; /* Rosa fuerte */
+            text-shadow: 3px 3px 0 #880e4f;
+        }
+
+        /* Contenedor principal del juego */
+        .game-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        /* Contenedor de las tarjetas de juego */
+        .card-container {
+            background-color: #f8bbd0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Tarjeta de imagen y espacios para soltar */
+        .card {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Contenedor del emoji */
+        .emoji-icon {
+            font-size: clamp(8rem, 20vw, 10rem);
+            line-height: 1;
+        }
+
+        .drop-zone {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background-color: #fce4ec;
+            border-radius: 10px;
+            padding: 10px;
+            min-height: 50px;
+            border: 2px dashed #e91e63;
+        }
+
+        .drop-target {
+            background-color: #f8bbd0;
+            border: 2px dashed #e91e63;
+            border-radius: 8px;
+            width: 80px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e91e63;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .correct-drop {
+            background-color: #81c784; /* Verde suave para sílabas correctas */
+            color: white;
+            border-color: #2e7d32;
+        }
+        
+        /* Sílabas arrastrables */
+        .syllables-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .syllable {
+            background-color: #ab47bc; /* Púrpura */
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .syllable:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Mensajes de retroalimentación */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ab47bc;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 2rem;
+            font-family: 'Luckiest Guy', cursive;
+            z-index: 1000;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            text-shadow: 2px 2px 0 #6a1b9a;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .correct-message {
+            background-color: #66bb6a;
+            text-shadow: 2px 2px 0 #388e3c;
+        }
+
+        .final-message {
+            background-color: #ffb74d;
+            text-shadow: 2px 2px 0 #fb8c00;
+        }
+
+        /* Botón de reinicio */
+        .restart-button {
+            background-color: #ff5722; /* Naranja vibrante */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #bf360c;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .restart-button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #bf360c;
+        }
+
+        /* Estilos para pantallas pequeñas (móviles) */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .message-box {
+                font-size: 1.5rem;
+                padding: 15px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Aprende a leer</h1>
+
+    <div class="game-container">
+        <div class="card-container">
+            <div class="card">
+                <!-- El emoji se llenará con JavaScript -->
+                <div class="emoji-icon"></div>
+                <!-- Los espacios para soltar se llenarán con JavaScript -->
+                <div class="drop-zone"></div>
+            </div>
+        </div>
+
+        <!-- Las sílabas arrastrables se llenarán con JavaScript -->
+        <div class="syllables-container"></div>
+    </div>
+    
+    <div class="message-box" id="messageBox"></div>
+
+    <script>
+        // Array de datos del juego: palabras, sílabas y emojis (como "dibujos")
+        const gameData = [
+            { word: 'camello', syllables: ['ca', 'me', 'llo'], emoji: '🐪' },
+            { word: 'coche', syllables: ['co', 'che'], emoji: '🚗' },
+            { word: 'castillo', syllables: ['cas', 'ti', 'llo'], emoji: '🏰' },
+            { word: 'hermana', syllables: ['her', 'ma', 'na'], emoji: '👩‍👧' },
+            { word: 'medico', syllables: ['me', 'di', 'co'], emoji: '�‍⚕️' },
+            { word: 'enfermera', syllables: ['en', 'fer', 'me', 'ra'], emoji: '👩‍⚕️' },
+            { word: 'gallina', syllables: ['ga', 'lli', 'na'], emoji: '🐔' },
+            { word: 'payaso', syllables: ['pa', 'ya', 'so'], emoji: '🤡' },
+            { word: 'zapato', syllables: ['za', 'pa', 'to'], emoji: '👟' },
+            { word: 'avioneta', syllables: ['a', 'vio', 'ne', 'ta'], emoji: '🛩️' },
+            { word: 'guitarra', syllables: ['gui', 'ta', 'rra'], emoji: '🎸' },
+            { word: 'ballena', syllables: ['ba', 'lle', 'na'], emoji: '🐋' },
+            { word: 'jinete', syllables: ['ji', 'ne', 'te'], emoji: '🏇' },
+            { word: 'soldado', syllables: ['sol', 'da', 'do'], emoji: '💂' },
+            { word: 'manzana', syllables: ['man', 'za', 'na'], emoji: '🍎' },
+            { word: 'huevo', syllables: ['hue', 'vo'], emoji: '🥚' },
+            { word: 'pulpo', syllables: ['pul', 'po'], emoji: '🐙' },
+            { word: 'familia', syllables: ['fa', 'mi', 'lia'], emoji: '👨‍👩‍👧‍👦' },
+            { word: 'jirafa', syllables: ['ji', 'ra', 'fa'], emoji: '🦒' },
+            { word: 'chaqueta', syllables: ['cha', 'que', 'ta'], emoji: '🧥' }
+        ];
+
+        let currentWordIndex = 0;
+        let correctWordsCount = 0;
+        let droppedCount = 0;
+
+        const emojiIcon = document.querySelector('.emoji-icon');
+        const dropZone = document.querySelector('.drop-zone');
+        const syllablesContainer = document.querySelector('.syllables-container');
+        const messageBox = document.getElementById('messageBox');
+
+        // Función para mostrar mensajes de retroalimentación
+        function showMessage(text, isCorrect = false, isFinal = false) {
+            messageBox.textContent = text;
+            messageBox.style.display = 'block';
+            messageBox.className = 'message-box'; // Reinicia las clases
+            if (isCorrect) {
+                messageBox.classList.add('correct-message');
+            }
+            if (isFinal) {
+                messageBox.classList.add('final-message');
+            }
+
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 1500);
+        }
+
+        // Carga una nueva tarjeta de juego
+        function loadCard() {
+            if (currentWordIndex >= gameData.length) {
+                showMessage('¡Felicidades, has completado el juego!', false, true);
+                
+                // Mostrar el mensaje final con los globos y el botón de reinicio
+                setTimeout(() => {
+                    const gameContainer = document.querySelector('.game-container');
+                    gameContainer.innerHTML = ''; // Limpia el contenedor
+                    const finalMessage = document.createElement('div');
+                    finalMessage.classList.add('message-box', 'final-message');
+                    finalMessage.innerHTML = '¡Felicitaciones! 🎉🎈🎈<br>Juega de nuevo';
+                    
+                    const restartButton = document.createElement('button');
+                    restartButton.textContent = 'Jugar de Nuevo';
+                    restartButton.classList.add('restart-button');
+                    restartButton.onclick = restartGame;
+                    
+                    document.body.appendChild(finalMessage);
+                    document.body.appendChild(restartButton);
+
+                }, 1500);
+
+                return;
+            }
+
+            // Limpiar contenedores anteriores
+            dropZone.innerHTML = '';
+            syllablesContainer.innerHTML = '';
+            droppedCount = 0;
+            
+            const currentItem = gameData[currentWordIndex];
+            emojiIcon.textContent = currentItem.emoji;
+            
+            // Crear espacios para soltar (targets)
+            currentItem.syllables.forEach((syllable, index) => {
+                const dropTarget = document.createElement('div');
+                dropTarget.classList.add('drop-target');
+                dropTarget.dataset.correctSyllable = syllable;
+                dropTarget.dataset.index = index;
+                dropZone.appendChild(dropTarget);
+            });
+
+            // Crear sílabas arrastrables (sources), desordenadas
+            const shuffledSyllables = [...currentItem.syllables].sort(() => Math.random() - 0.5);
+            shuffledSyllables.forEach(syllableText => {
+                const syllable = document.createElement('div');
+                syllable.classList.add('syllable');
+                syllable.textContent = syllableText;
+                syllable.setAttribute('draggable', true);
+                syllablesContainer.appendChild(syllable);
+            });
+        }
+        
+        // Reiniciar el juego
+        function restartGame() {
+            currentWordIndex = 0;
+            correctWordsCount = 0;
+            droppedCount = 0;
+            const finalMessage = document.querySelector('.message-box.final-message');
+            const restartButton = document.querySelector('.restart-button');
+            if(finalMessage) finalMessage.remove();
+            if(restartButton) restartButton.remove();
+            document.body.appendChild(document.querySelector('.game-container'));
+            loadCard();
+        }
+        
+        // Manejadores de eventos de arrastrar y soltar
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('syllable')) {
+                e.dataTransfer.setData('text/plain', e.target.textContent);
+                e.target.classList.add('dragging');
+            }
+        });
+
+        document.addEventListener('dragend', (e) => {
+            if (e.target.classList.contains('syllable')) {
+                e.target.classList.remove('dragging');
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggingElement = document.querySelector('.syllable.dragging');
+            if (draggingElement) {
+                 e.target.classList.add('drop-hover');
+            }
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+             e.target.classList.remove('drop-hover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.target.classList.remove('drop-hover');
+            
+            const draggedSyllable = e.dataTransfer.getData('text/plain');
+            const dropTarget = e.target.closest('.drop-target');
+            
+            if (dropTarget && dropTarget.textContent === '') {
+                // Si el espacio para soltar está vacío, verifica la sílaba
+                const correctSyllable = dropTarget.dataset.correctSyllable;
+
+                if (draggedSyllable === correctSyllable) {
+                    // Sílaba correcta
+                    dropTarget.textContent = draggedSyllable;
+                    dropTarget.classList.add('correct-drop');
+                    const draggingElement = document.querySelector('.syllable.dragging');
+                    if (draggingElement) {
+                        draggingElement.remove();
+                        droppedCount++;
+                        
+                        // Verifica si la palabra está completa
+                        if (droppedCount === gameData[currentWordIndex].syllables.length) {
+                            showMessage('¡Bien!', true);
+                            setTimeout(() => {
+                                currentWordIndex++;
+                                loadCard();
+                            }, 1000);
+                        }
+                    }
+                } else {
+                    // Sílaba incorrecta
+                    showMessage('Vuelve a intentarlo');
+                    // La sílaba regresa a su contenedor, lo hace automáticamente al no ser soltada en un target válido
+                }
+            } else {
+                 showMessage('Vuelve a intentarlo');
+            }
+        });
+
+        // Event listener para manejar el clic en sílabas en dispositivos táctiles
+        let selectedSyllable = null;
+
+        syllablesContainer.addEventListener('click', (e) => {
+            const syllable = e.target.closest('.syllable');
+            if (syllable) {
+                if (selectedSyllable) {
+                    selectedSyllable.style.border = 'none';
+                    selectedSyllable.style.outline = 'none';
+                }
+                selectedSyllable = syllable;
+                syllable.style.border = '2px solid #fff';
+                syllable.style.outline = '2px solid #ffc107';
+            }
+        });
+
+        dropZone.addEventListener('click', (e) => {
+            const dropTarget = e.target.closest('.drop-target');
+            if (dropTarget && selectedSyllable && dropTarget.textContent === '') {
+                const draggedSyllable = selectedSyllable.textContent;
+                const correctSyllable = dropTarget.dataset.correctSyllable;
+                const dropIndex = parseInt(dropTarget.dataset.index);
+                
+                // Verificar si la sílaba es la que corresponde a la posición
+                const correctSyllablesInOrder = gameData[currentWordIndex].syllables;
+                if (draggedSyllable === correctSyllablesInOrder[dropIndex]) {
+                    // Correcto
+                    dropTarget.textContent = draggedSyllable;
+                    dropTarget.classList.add('correct-drop');
+                    selectedSyllable.remove();
+                    selectedSyllable = null;
+                    droppedCount++;
+                    
+                    if (droppedCount === correctSyllablesInOrder.length) {
+                        showMessage('¡Bien!', true);
+                        setTimeout(() => {
+                            currentWordIndex++;
+                            loadCard();
+                        }, 1000);
+                    }
+                } else {
+                    // Incorrecto
+                    showMessage('Vuelve a intentarlo');
+                }
+            } else if (dropTarget && dropTarget.textContent !== '') {
+                 // Si el espacio ya tiene una sílaba, no hacer nada
+                 showMessage('Vuelve a intentarlo');
+            }
+        });
+
+        // Inicializar el juego al cargar la página
+        document.addEventListener('DOMContentLoaded', loadCard);
+        
+    </script>
+</body>
+</html>
+�
